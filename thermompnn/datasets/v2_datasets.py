@@ -703,7 +703,7 @@ class MegaScaleDatasetv2(torch.utils.data.Dataset):
                 else:
                     pt_tag = ''
 
-                pt_file = os.path.join(pdb_loc, wt_name, 'pdb_models', f'{chain}[{wt_ros}{pos_ros}{mut_ros}{pt_tag}].pt')
+                pt_file = os.path.join(pdb_loc, wt_name, 'pt_models', f'{chain}[{wt_ros}{pos_ros}{mut_ros}{pt_tag}].pt')
                 # if pt exists, it's way faster to load than using the pdb parser
                 if os.path.isfile(pt_file):
                     pdb = torch.load(pt_file)
