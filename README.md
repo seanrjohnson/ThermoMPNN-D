@@ -2,7 +2,7 @@
 
 ![ThermoMPNN-D](./images/ThermoMPNN-D.svg)
 
-This work is an extension of ThermoMPNN (https://github.com/Kuhlman-Lab/ThermoMPNN), which is itself an extension of ProteinMPNN (https://github.com/dauparas/ProteinMPNN). For details, see our manuscript [here](https://www.biorxiv.org/content/10.1101/2024.08.20.608844v1).
+This work is an extension of ThermoMPNN (https://github.com/Kuhlman-Lab/ThermoMPNN), which is itself an extension of ProteinMPNN (https://github.com/dauparas/ProteinMPNN). For details, see our manuscript [here](https://doi.org/10.1002/pro.70003).
 
 To try out ThermoMPNN-D right in your browser, use the Colab notebook at [this link](https://colab.research.google.com/github/Kuhlman-Lab/ThermoMPNN-D/blob/main/ThermoMPNN-D.ipynb).
 
@@ -37,7 +37,7 @@ We provide a script called ```v2_ssm.py``` which does inference on all possible 
 
 There is an important option called ```--threshold``` which dictates which mutations will get saved to disk. By default, ThermoMPNN will only save stabilizing mutations (ddG <= -0.5 kcal/mol), since this is fastest for saving to disk. To get all the mutations, including destabilizing mutations, set --threshold very high (e.g., 100).
 
-The other useful option is ```--distance``` which is used for additive or epistatic predictions. This is the distance threshold used to filter for "nearby" residues that are likely to have epistatic interactions. A smaller value will lead to stricter filtering. Default is 15 A (based on Ca-Ca distance).
+The other useful option is ```--distance``` which is used for additive or epistatic predictions. This is the distance threshold used to filter for "nearby" residues that are likely to have epistatic interactions. A smaller value will lead to stricter filtering. Default is 5 A (based on Ca-Ca distance).
 
 #### Single mutant model
 This is an updated version of single mutant ThermoMPNN that uses fewer parameters and proper batched inference for faster prediction. It should give similar results to the previously published ThermoMPNN models.
@@ -83,15 +83,16 @@ This work is made available under an MIT license (see LICENSE file for details).
 
 If this work is useful to you, please use the following citation:
 ```
-@article {Dieckhaus2024.08.20.608844,
-	author = {Dieckhaus, Henry and Kuhlman, Brian},
-	title = {Protein stability models fail to capture epistatic interactions of double point mutations},
-    journal = {bioRxiv},
-	elocation-id = {2024.08.20.608844},
-	year = {2024},
-	doi = {10.1101/2024.08.20.608844},
-	publisher = {Cold Spring Harbor Laboratory},
-	URL = {https://www.biorxiv.org/content/early/2024/08/21/2024.08.20.608844},
-	eprint = {https://www.biorxiv.org/content/early/2024/08/21/2024.08.20.608844.full.pdf},
+@article{https://doi.org/10.1002/pro.70003,
+author = {Dieckhaus, Henry and Kuhlman, Brian},
+title = {Protein stability models fail to capture epistatic interactions of double point mutations},
+journal = {Protein Science},
+volume = {34},
+number = {1},
+pages = {e70003},
+doi = {https://doi.org/10.1002/pro.70003},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/pro.70003},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/pro.70003},
+year = {2025}
 }
 ```
