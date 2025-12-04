@@ -1,11 +1,62 @@
 import argparse
 import os
+from types import SimpleNamespace
+
 import pandas as pd
 from tqdm import tqdm
 
+from Bio import Align
 from Bio.PDB import PDBParser, Superimposer
-from Bio import pairwise2
 from parsers import get_pdb_seq
+
+
+_ALIGNER = Align.PairwiseAligner()
+_ALIGNER.mode = "global"
+_ALIGNER.match_score = 1.0
+_ALIGNER.mismatch_score = 0.0
+_ALIGNER.open_gap_score = 0.0
+_ALIGNER.extend_gap_score = 0.0
+
+
+def _alignment_to_strings(alignment, seq1, seq2):
+    seq1 = str(seq1)
+    seq2 = str(seq2)
+    coords1 = alignment.aligned[0]
+    coords2 = alignment.aligned[1]
+    pos1 = pos2 = 0
+    seq1_parts = []
+    seq2_parts = []
+
+    for (start1, end1), (start2, end2) in zip(coords1, coords2):
+        if start1 > pos1:
+            seq1_parts.append(seq1[pos1:start1])
+            seq2_parts.append("-" * (start1 - pos1))
+        if start2 > pos2:
+            seq1_parts.append("-" * (start2 - pos2))
+            seq2_parts.append(seq2[pos2:start2])
+
+        seq1_parts.append(seq1[start1:end1])
+        seq2_parts.append(seq2[start2:end2])
+        pos1 = end1
+        pos2 = end2
+
+    if pos1 < len(seq1):
+        seq1_parts.append(seq1[pos1:])
+        seq2_parts.append("-" * (len(seq1) - pos1))
+    if pos2 < len(seq2):
+        seq1_parts.append("-" * (len(seq2) - pos2))
+        seq2_parts.append(seq2[pos2:])
+
+    return "".join(seq1_parts), "".join(seq2_parts)
+
+
+def _globalxx_alignment(seq1, seq2):
+    alignments = _ALIGNER.align(str(seq1), str(seq2))
+    if len(alignments) == 0:
+        raise ValueError("Failed to align sequences")
+    alignment = alignments[0]
+    seqA, seqB = _alignment_to_strings(alignment, seq1, seq2)
+    return SimpleNamespace(seqA=seqA, seqB=seqB, score=alignment.score)
 
 
 def select_atoms(ref_seq, alt_seq, ref_model, alt_model):
@@ -102,7 +153,7 @@ def main(args):
         exp_record = get_pdb_seq(os.path.join(args.exp, e), 'pdb-atom')
         af2_record = get_pdb_seq(os.path.join(args.af2, af2), 'pdb-atom')
         
-        align, *rest = pairwise2.align.globalxx(str(exp_record.seq), str(af2_record.seq))
+        align = _globalxx_alignment(str(exp_record.seq), str(af2_record.seq))
 
         exp_pdb = parser.get_structure('exp', os.path.join(args.exp, e))[0]
         af2_pdb = parser.get_structure('exp', os.path.join(args.af2, af2))[0]

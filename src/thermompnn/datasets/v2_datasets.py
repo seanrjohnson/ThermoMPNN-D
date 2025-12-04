@@ -3,7 +3,9 @@ import pandas as pd
 import numpy as np
 import pickle
 import os
-from Bio import pairwise2
+from types import SimpleNamespace
+
+from Bio import Align
 from tqdm import tqdm
 from copy import deepcopy
 from itertools import permutations
@@ -11,6 +13,55 @@ import itertools
 
 from thermompnn.protein_mpnn_utils import alt_parse_PDB, parse_PDB
 from thermompnn.datasets.dataset_utils import Mutation, seq1_index_to_seq2_index, ALPHABET
+
+
+_ALIGNER = Align.PairwiseAligner()
+_ALIGNER.mode = "global"
+_ALIGNER.match_score = 1.0
+_ALIGNER.mismatch_score = 0.0
+_ALIGNER.open_gap_score = 0.0
+_ALIGNER.extend_gap_score = 0.0
+
+
+def _alignment_to_strings(alignment, seq1, seq2):
+    seq1 = str(seq1)
+    seq2 = str(seq2)
+    coords1 = alignment.aligned[0]
+    coords2 = alignment.aligned[1]
+    pos1 = pos2 = 0
+    seq1_parts = []
+    seq2_parts = []
+
+    for (start1, end1), (start2, end2) in zip(coords1, coords2):
+        if start1 > pos1:
+            seq1_parts.append(seq1[pos1:start1])
+            seq2_parts.append("-" * (start1 - pos1))
+        if start2 > pos2:
+            seq1_parts.append("-" * (start2 - pos2))
+            seq2_parts.append(seq2[pos2:start2])
+
+        seq1_parts.append(seq1[start1:end1])
+        seq2_parts.append(seq2[start2:end2])
+        pos1 = end1
+        pos2 = end2
+
+    if pos1 < len(seq1):
+        seq1_parts.append(seq1[pos1:])
+        seq2_parts.append("-" * (len(seq1) - pos1))
+    if pos2 < len(seq2):
+        seq1_parts.append("-" * (len(seq2) - pos2))
+        seq2_parts.append(seq2[pos2:])
+
+    return "".join(seq1_parts), "".join(seq2_parts)
+
+
+def _globalxx_alignment(seq1, seq2):
+    alignments = _ALIGNER.align(str(seq1), str(seq2))
+    if len(alignments) == 0:
+        raise ValueError("Failed to align sequences")
+    alignment = alignments[0]
+    seqA, seqB = _alignment_to_strings(alignment, seq1, seq2)
+    return SimpleNamespace(seqA=seqA, seqB=seqB, score=alignment.score)
 
 
 def tied_featurize_mut(batch, device='cpu', chain_dict=None, fixed_position_dict=None, omit_AA_dict=None, tied_positions_dict=None,
@@ -505,8 +556,8 @@ class FireProtDatasetv2(torch.utils.data.Dataset):
             assert pdb['seq'][pdb_idx] == row.wild_type == row.pdb_sequence[row.pdb_position]
             
         except AssertionError:  # contingency for mis-alignments
-            align, *rest = pairwise2.align.globalxx(row.pdb_sequence, pdb['seq'].replace("-", "X"))
-            pdb_idx = seq1_index_to_seq2_index(align, row.pdb_position)
+            alignment = _globalxx_alignment(row.pdb_sequence, pdb['seq'].replace("-", "X"))
+            pdb_idx = seq1_index_to_seq2_index(alignment, row.pdb_position)
 
             assert pdb['seq'][pdb_idx] == row.wild_type == row.pdb_sequence[row.pdb_position]
 

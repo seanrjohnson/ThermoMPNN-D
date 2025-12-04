@@ -1,4 +1,5 @@
 from pathlib import Path
+from textwrap import dedent
 from types import SimpleNamespace
 
 import pandas as pd
@@ -6,6 +7,30 @@ import pytest
 
 from thermompnn_d import v2_ssm
 from thermompnn import train_thermompnn
+
+
+BASE_CFG = dedent(
+        """
+        project: test-project
+        name: cli-run
+        platform:
+            accel: cpu
+        data:
+            mut_types:
+                - single
+        training:
+            batch_size: 2
+        """
+)
+
+
+OVERRIDE_CFG = dedent(
+        """
+        training:
+            epochs: 3
+            batch_fraction: 0.25
+        """
+)
 
 
 @pytest.mark.usefixtures("datadir")
@@ -69,7 +94,7 @@ def test_thermompnn_cli_single_writes_csv(monkeypatch, datadir, tmp_path):
     assert captured["renumber_mode"] == "single"
 
 
-def test_train_thermompnn_cli_invokes_training(monkeypatch, shared_datadir):
+def test_train_thermompnn_cli_invokes_training(monkeypatch, tmp_path):
     captured = {}
 
     class DummyDataset:
@@ -133,7 +158,12 @@ def test_train_thermompnn_cli_invokes_training(monkeypatch, shared_datadir):
     monkeypatch.setattr(train_thermompnn.wandb, "init", fake_wandb_init)
     monkeypatch.setattr(train_thermompnn.os, "makedirs", fake_makedirs)
 
-    cfg_paths = [shared_datadir / "base.yaml", shared_datadir / "override.yaml"]
+    base_cfg = tmp_path / "base.yaml"
+    base_cfg.write_text(BASE_CFG)
+    override_cfg = tmp_path / "override.yaml"
+    override_cfg.write_text(OVERRIDE_CFG)
+
+    cfg_paths = [base_cfg, override_cfg]
     exit_code = train_thermompnn.main([str(cfg_paths[0]), str(cfg_paths[1])])
 
     assert exit_code == 0
