@@ -1,5 +1,14 @@
-## This is the official implementation of ThermoMPNN-D, a Siamese neural network designed to predict stability changes from protein double point mutations.
+## This is a fork of ThermoMPNN-D 
 
+Major changes:
+- Install with `pip install .` to make accessible on the system PATH.
+- Provides CLI entry points `thermompnn` (inference) and `train_thermompnn` (training).
+
+
+
+
+
+## ORIGNAL README
 ![ThermoMPNN-D](./images/ThermoMPNN-D.svg)
 
 This work is an extension of ThermoMPNN (https://github.com/Kuhlman-Lab/ThermoMPNN), which is itself an extension of ProteinMPNN (https://github.com/dauparas/ProteinMPNN). For details, see our manuscript [here](https://doi.org/10.1002/pro.70003).
