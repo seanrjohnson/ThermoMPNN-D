@@ -3,10 +3,9 @@
 Major changes:
 - Install with `pip install .` to make accessible on the system PATH.
 - Provides CLI entry points `thermompnn` (inference) and `train_thermompnn` (training).
+- Added basic CLI integration tests using pytest.
 
-
-
-
+The official ThermoMPNN-D repo can be found [here](https://github.com/Kuhlman-Lab/ThermoMPNN-D).
 
 ## ORIGNAL README
 ![ThermoMPNN-D](./images/ThermoMPNN-D.svg)
