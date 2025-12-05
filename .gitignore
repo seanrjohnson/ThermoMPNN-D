@@ -129,7 +129,6 @@ dmypy.json
 .pyre/
 
 # henry specific custom files and data
-vanilla_model_weights/
 data
 lightning_logs
 checkpoints
